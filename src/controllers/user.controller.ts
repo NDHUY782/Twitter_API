@@ -3,14 +3,24 @@ import User from '~/models/schemas/Users.Schema'
 import databaseService from '~/services/database.service'
 import userService from '~/services/users.service'
 import { NextFunction, ParamsDictionary } from 'express-serve-static-core'
-import { RegisterReqBody } from '~/models/requests/User.requests'
+import { LogoutReqBody, RegisterReqBody } from '~/models/requests/User.requests'
+import { ObjectId } from 'mongodb'
 
-export const loginController = (req: Request, res: Response) => {
-  const { email, password } = req.body
-  if (email === 'huy123@gmail.com' && password === '123456') {
-    return res.status(200).json({ msg: 'login Successful' })
+export const loginController = async (req: Request, res: Response) => {
+  try {
+    const user = req.user as User
+    const user_id = user._id as ObjectId
+
+    const result = await userService.login(user_id.toString())
+    return res.status(200).json({
+      msg: 'Login Success',
+      data: result
+    })
+  } catch (error) {
+    res.status(400).json({
+      msg: 'Login failed'
+    })
   }
-  return res.status(400).json({ error: 'Login Fail' })
 }
 export const registerController = async (
   req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -34,6 +44,21 @@ export const registerController = async (
     // res.status(400).json({
     //   error: 'Register fail'
     // })
+    next(error)
+  }
+}
+export const logoutController = async (
+  req: Request<ParamsDictionary, any, LogoutReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { refresh_token } = req.body
+    const result = await userService.logout(refresh_token)
+    res.json({
+      result
+    })
+  } catch (error) {
     next(error)
   }
 }

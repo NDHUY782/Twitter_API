@@ -1,3 +1,27 @@
 export const USERS_MESSAGES = {
-  VALIDATION_ERROR: 'Validation Error'
+  VALIDATION_ERROR: 'Validation Error',
+  NAME_IS_REQUIRED: 'Name must required',
+  NAME_MUST_BE_A_STRING: 'Name must be a string',
+  NAME_LENGTH: 'Name length at least 1-100',
+  EMAIL_IS_REQUIRED: 'Email must required',
+  EMAIL_EXIST: 'Email al ready exist',
+  EMAIL_ALREADY_EXIST: 'Email already exist',
+  EMAIL_IS_INVALID: 'Email must be a string',
+  PASSWORD_IS_REQUIRED: 'Password must required',
+  PASSWORD_MUST_BE_A_STRING: 'Password must be a string',
+  PASSWORD_LENGTH: 'Password length MUST BE 6-50',
+  PASSWORD_MUST_BE_STRONG: 'Password must be strong',
+  PASSWORD_CONFIRMATION_IS_REQUIRED: 'Password Confirmation must required',
+  PASSWORD_CONFIRMATION_MUST_BE_A_STRING: 'Password Confirmation must be a string',
+  PASSWORD_CONFIRMATION_LENGTH: 'Password Confirmation length MUST BE 6-50',
+  PASSWORD_CONFIRMATION_MUST_BE_STRONG: 'Password Confirmation must be strong',
+  PASSWORD_CONFIRMATION_MUST_MATCH: 'Password Confirmation must match',
+  DATE_OF_BIRTH_MUST_ISO8601: 'Date of birth must be ios8601',
+  EMAIL_OR_PASSWORD_IS_INCORRECT: 'Email or password is incorrect',
+  AUTHORIZATION_HEADER_IS_REQUIRED: ' Authorization header is required',
+  REFRESH_TOKEN_IS_REQUIRED: ' Refresh token is required',
+  REFRESH_TOKEN_IS_INVALID: ' Refresh token is invalid ',
+  USED_REFRESH_TOKEN_OR_NOT_EXIST: ' Refresh token is used or not exist',
+  LOGOUT_SUCCESS: 'Log out success',
+  ACCESS_TOKEN_IS_INVALID: 'Access token is invalid'
 } as const
