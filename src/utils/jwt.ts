@@ -43,6 +43,46 @@ export const signRefreshToken = ({
     })
   })
 }
+export const signEmailVerifyToken = ({
+  payload,
+  privateKey = process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
+  options = {
+    algorithm: 'HS256'
+  }
+}: {
+  payload: string | Buffer | object
+  privateKey?: string
+  options?: SignOptions
+}) => {
+  return new Promise<string>((resolve, reject) => {
+    jwt.sign(payload, privateKey, options, (error, token) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(token as string)
+    })
+  })
+}
+export const signForgotPasswordToken = ({
+  payload,
+  privateKey = process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+  options = {
+    algorithm: 'HS256'
+  }
+}: {
+  payload: string | Buffer | object
+  privateKey?: string
+  options?: SignOptions
+}) => {
+  return new Promise<string>((resolve, reject) => {
+    jwt.sign(payload, privateKey, options, (error, token) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(token as string)
+    })
+  })
+}
 
 export const verifyToken = ({
   token,
@@ -63,6 +103,38 @@ export const verifyToken = ({
 export const verifyRefreshToken = ({
   token,
   secretOrPublicKey = process.env.JWT_SECRET_REFRESH_TOKEN as string
+}: {
+  token: string
+  secretOrPublicKey?: string
+}) => {
+  return new Promise<TokenPayload>((resolve, reject) => {
+    jwt.verify(token, secretOrPublicKey, (error, decoded) => {
+      if (error) {
+        throw reject(error)
+      }
+      resolve(decoded as TokenPayload)
+    })
+  })
+}
+export const verifyEmailToken = ({
+  token,
+  secretOrPublicKey = process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+}: {
+  token: string
+  secretOrPublicKey?: string
+}) => {
+  return new Promise<TokenPayload>((resolve, reject) => {
+    jwt.verify(token, secretOrPublicKey, (error, decoded) => {
+      if (error) {
+        throw reject(error)
+      }
+      resolve(decoded as TokenPayload)
+    })
+  })
+}
+export const verifyForgotPasswordToken = ({
+  token,
+  secretOrPublicKey = process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
 }: {
   token: string
   secretOrPublicKey?: string
