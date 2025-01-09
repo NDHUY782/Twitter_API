@@ -40,7 +40,7 @@ export const USERS_MESSAGES = {
   WEBSITE_SHOULD_BE_A_STRING: 'Website should be a string',
   WEBSITE_LENGTH: 'Website length MUST BE 6-200',
   USERNAME_SHOULD_BE_A_STRING: 'Username should be a string',
-  USERNAME_LENGTH: 'Username length MUST BE 6-50',
+  USERNAME_INVALID: 'Username MUST BE 4-15, contain only underscores, number,',
   IMAGE_URL_MUST_BE_STRING: 'Image URL must be a string',
   IMAGE_URL_LENGTH: 'Image URL length MUST BE 6-450',
   UPDATE_ME_SUCCESS: 'Update me success',
@@ -49,5 +49,9 @@ export const USERS_MESSAGES = {
   INVALID_USER_ID: 'Invalid user id',
   ALREADY_FOLLOWED: 'Already followed',
   ALREADY_UNFOLLOW_SUCCESS: 'Already unfollow success',
-  UNFOLLOW_SUCCESS: 'Unfollow success'
+  UNFOLLOW_SUCCESS: 'Unfollow success',
+  USERNAME_EXIST: 'Username already exist',
+  OLD_PASSWORD_NOT_MATCH: 'Old password not match',
+  CHANGE_PASSWORD_SUCCESS: 'Change password success',
+  UPLOAD_SUCCESS: 'Upload success'
 } as const

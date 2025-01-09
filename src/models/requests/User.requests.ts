@@ -2,6 +2,7 @@ import { JwtPayload } from 'jsonwebtoken'
 import { ppid } from 'process'
 import { TokenType } from '~/constants/enums'
 import { ParamsDictionary } from 'express-serve-static-core'
+import { unset } from 'lodash'
 export interface UpdateMeReqBody {
   name: string
   date_of_birth?: string
@@ -48,4 +49,9 @@ export interface FollowReqBody {
 }
 export interface UnFollowReqParams extends ParamsDictionary {
   user_id: string
+}
+export interface ChangePasswordReqBody {
+  old_password: string
+  password: string
+  confirm_password: string
 }

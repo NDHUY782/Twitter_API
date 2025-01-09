@@ -11,11 +11,13 @@ import {
   updateMeController,
   getUserProfileController,
   followUserController,
-  unFollowUserController
+  unFollowUserController,
+  changePasswordController
 } from '~/controllers/user.controller'
 import { filterMiddlewares } from '~/middleware/common.middlewares'
 import {
   accessTokenValidator,
+  changePasswordValidator,
   followValidator,
   forgotPasswordTokenValidator,
   loginValidator,
@@ -92,6 +94,19 @@ userRouter.post(
   '/verify-forgot-password',
   verifyForgotPasswordTokenValidator,
   wrapRequestHandler(verifyForgotPasswordController)
+)
+/**
+ * Description: Change password
+ * Path: /change-password
+ * Method: PUT
+ * Body: {old-password: string,password, confirm password: string}
+ */
+userRouter.post(
+  '/change-password',
+  accessTokenValidator,
+  verifyForgotPasswordTokenValidator,
+  changePasswordValidator,
+  wrapRequestHandler(changePasswordController)
 )
 
 /**
