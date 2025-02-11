@@ -16,7 +16,8 @@ import userRouter from './routes/users.routes'
 import { defaultErrorHandler } from '~/middleware/error.middlewares'
 import mediaRouter from '~/routes/medias.routes'
 import { initFolder } from '~/utils/file'
-import { UPLOAD_DIR, UPLOAD_TEMP_DIR } from '~/constants/dir'
+import staticRoute from '~/routes/static.routes'
+import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
 
 const router = Router()
 
@@ -53,6 +54,7 @@ app.get('/', (_, res: Response) => {
 
 app.use('/api/users/', userRouter)
 app.use('/api/medias/', mediaRouter)
+app.use('/api/static/', staticRoute)
 // app.use("/api/category/", categoryRoute);
 // app.use("/api/post", postRoute);
 // app.use("/api/page", pageRoute);
@@ -64,7 +66,7 @@ app.use('/api/medias/', mediaRouter)
 // app.use("/api/chat-group/", chatGroupRoute);
 // app.use("/api/send-mess/", messRoute);
 
-app.use('static', express.static(UPLOAD_DIR))
+app.use('static/video', express.static(UPLOAD_VIDEO_DIR))
 app.use(defaultErrorHandler)
 // Error handler middleware
 // app.use((err: any, req: Request, res: Response, next: NextFunction) => {

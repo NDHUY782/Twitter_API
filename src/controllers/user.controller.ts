@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request, RequestHandler, Response } from 'express'
 import User from '~/models/schemas/Users.Schema'
 import databaseService from '~/services/database.service'
 import userService from '~/services/users.service'
@@ -10,6 +10,7 @@ import {
   GetProfileReqParams,
   LoginReqBody,
   LogoutReqBody,
+  RefreshTokenReqBody,
   RegisterReqBody,
   TokenPayload,
   UnFollowReqParams,
@@ -22,61 +23,60 @@ import HTTP_STATUS from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
 import { UserVerifyStatus } from '~/constants/enums'
 
-export const loginController = async (req: Request<ParamsDictionary, any, LoginReqBody>, res: Response) => {
-  try {
-    const user = req.user as User
-    const user_id = user._id as ObjectId
+export const loginController = async (
+  req: Request<ParamsDictionary, any, LoginReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user as User
+  const user_id = user._id as ObjectId
 
-    const result = await userService.login({ user_id: user_id.toString(), verify: user.verify })
-    return res.status(200).json({
-      msg: 'Login Success',
-      data: result
-    })
-  } catch (error) {
-    res.status(400).json({
-      msg: 'Login failed'
-    })
-  }
+  const result = await userService.login({ user_id: user_id.toString(), verify: user.verify })
+  return res.status(200).json({
+    msg: 'Login Success',
+    data: result
+  })
 }
 export const registerController = async (
   req: Request<ParamsDictionary, any, RegisterReqBody>,
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    // throw new Error('Lỗi rồi')
-    const result = await userService.register(req.body)
-    // if (!result) {
-    //   // Kiểm tra nếu `result` là `false`
-    //   return res.status(400).json({
-    //     msg: 'Email already exists'
-    //   })
-    // }
-    return res.status(200).json({
-      msg: 'Register Success',
-      data: result
+  const result = await userService.register(req.body)
+  if (!result) {
+    return res.status(400).json({
+      error: 'Register fail'
+      // })
     })
-  } catch (error) {
-    // res.status(400).json({
-    //   error: 'Register fail'
-    // })
-    next(error)
   }
+  return res.json({
+    msg: 'Register Success',
+    data: result
+  })
 }
 export const logoutController = async (
   req: Request<ParamsDictionary, any, LogoutReqBody>,
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    const { refresh_token } = req.body
-    const result = await userService.logout(refresh_token)
-    res.json({
-      result
-    })
-  } catch (error) {
-    next(error)
-  }
+  const { refresh_token } = req.body
+  const result = await userService.logout(refresh_token)
+  return res.json({
+    result
+  })
+}
+export const refreshTokenController = async (
+  req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { refresh_token } = req.body
+  const { user_id, verify } = req.decoded_refresh_token as TokenPayload
+  const result = await userService.refreshToken({ user_id, verify, refresh_token })
+  return res.json({
+    msg: USERS_MESSAGES.REFRESH_TOKEN_SUCCESS,
+    data: result
+  })
 }
 export const emailVerifyController = async (
   req: Request<ParamsDictionary, any, VerifyEmailReqBody>,
@@ -98,7 +98,7 @@ export const emailVerifyController = async (
     })
   }
   const result = await userService.verifyEmail(user_id)
-  res.json({
+  return res.json({
     msg: 'Email verified successfully',
     result
   })
@@ -142,7 +142,7 @@ export const forgotPasswordController = async (
   // }
   const result = await userService.forgotPassword({ user_id: (_id as ObjectId).toString(), verify })
 
-  res.json({
+  return res.json({
     msg: 'Hãy Kiểm Tra Mail Của Bạn Và Đổi Password Của Bạn',
     result
   })
@@ -152,14 +152,14 @@ export const verifyForgotPasswordController = async (
   res: Response,
   next: NextFunction
 ) => {
-  res.json({
+  return res.json({
     msg: USERS_MESSAGES.VERIFY_FORGOT_PASSWORD_SUCCESS
   })
 }
 export const getMyProfileController = async (req: Request, res: Response, next: NextFunction) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const result = await userService.getMe(user_id)
-  res.json({ result })
+  return res.json({ result })
 }
 export const updateMeController = async (
   req: Request<ParamsDictionary, any, UpdateMeReqBody>,

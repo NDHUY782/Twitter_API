@@ -1,4 +1,4 @@
-import { NextFunction, Request } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { checkSchema, ParamSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { isEmpty } from 'lodash'
@@ -436,7 +436,7 @@ export const verifyForgotPasswordTokenValidator = validate(
     ['body']
   )
 )
-export const verifiedUserValidator = async (req: Request, res: Response, next: NextFunction) => {
+export const verifiedUserValidator = (req: Request, res: Response, next: NextFunction) => {
   const { verify } = req.decoded_authorization as TokenPayload
   if (verify !== UserVerifyStatus.Verified) {
     return next(

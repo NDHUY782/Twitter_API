@@ -12,7 +12,8 @@ import {
   getUserProfileController,
   followUserController,
   unFollowUserController,
-  changePasswordController
+  changePasswordController,
+  refreshTokenController
 } from '~/controllers/user.controller'
 import { filterMiddlewares } from '~/middleware/common.middlewares'
 import {
@@ -29,8 +30,8 @@ import {
   verifyEmailTokenValidator,
   verifyForgotPasswordTokenValidator
 } from '~/middleware/users.middlewares'
-import { UpdateMeReqBody } from '~/models/requests/User.requests'
-import { wrapRequestHandler } from '~/utils/handlers'
+import { UnFollowReqParams, UpdateMeReqBody } from '~/models/requests/User.requests'
+import { wrapAsync, wrapRequestHandler, wrapRequest } from '~/utils/handlers'
 
 const userRouter = Router()
 /**
@@ -40,7 +41,7 @@ const userRouter = Router()
  * Body: {name: string, email: string, password: string, confirm_password: string , date of birth: ISO,  }
  */
 
-userRouter.post('/register', registerValidator, wrapRequestHandler(registerController))
+userRouter.post('/register', registerValidator, wrapAsync(registerController))
 
 /**
  * Description: Login user
@@ -49,7 +50,7 @@ userRouter.post('/register', registerValidator, wrapRequestHandler(registerContr
  * Body: {name: string, email: string, password: string, confirm_password: string , date of birth: ISO,  }
  */
 
-userRouter.post('/login', loginValidator, loginController)
+userRouter.post('/login', loginValidator, wrapAsync(loginController))
 
 /**
  * Description: User Log out
@@ -58,7 +59,14 @@ userRouter.post('/login', loginValidator, loginController)
  * Header: {Authorization: Bearer <access_token>}
  * Body: {refresh_token: string  }
  */
-userRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController))
+userRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapAsync(logoutController))
+/**
+ * Description: Refresh Token
+ * Path: /refresh-token
+ * Method: POST
+ * Body: {refresh_token: string  }
+ */
+userRouter.post('/refresh-token', refreshTokenValidator, wrapAsync(refreshTokenController))
 
 /**
  * Description: User verify email
@@ -66,7 +74,7 @@ userRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequ
  * Method: POST
  * Body: {email_verify_token: string  }
  */
-userRouter.post('/verify-email', verifyEmailTokenValidator, wrapRequestHandler(emailVerifyController))
+userRouter.post('/verify-email', verifyEmailTokenValidator, wrapAsync(emailVerifyController))
 
 /**
  * Description: User click to receive the new verify email
@@ -74,7 +82,7 @@ userRouter.post('/verify-email', verifyEmailTokenValidator, wrapRequestHandler(e
  * Method: POST
  * Header: {Authorization: Bearer <access_token>}
  */
-userRouter.post('/resend-verify-email', accessTokenValidator, wrapRequestHandler(resendEmailVerifyController))
+userRouter.post('/resend-verify-email', accessTokenValidator, wrapAsync(resendEmailVerifyController))
 
 /**
  * Description: Submit reset password link
@@ -82,7 +90,7 @@ userRouter.post('/resend-verify-email', accessTokenValidator, wrapRequestHandler
  * Method: POST
  * Body: email
  */
-userRouter.post('/forgot-password', forgotPasswordTokenValidator, wrapRequestHandler(forgotPasswordController))
+userRouter.post('/forgot-password', forgotPasswordTokenValidator, wrapAsync(forgotPasswordController))
 
 /**
  * Description: Verify link in email to reset password
@@ -93,7 +101,7 @@ userRouter.post('/forgot-password', forgotPasswordTokenValidator, wrapRequestHan
 userRouter.post(
   '/verify-forgot-password',
   verifyForgotPasswordTokenValidator,
-  wrapRequestHandler(verifyForgotPasswordController)
+  wrapAsync(verifyForgotPasswordController)
 )
 /**
  * Description: Change password
@@ -106,7 +114,7 @@ userRouter.post(
   accessTokenValidator,
   verifyForgotPasswordTokenValidator,
   changePasswordValidator,
-  wrapRequestHandler(changePasswordController)
+  wrapAsync(changePasswordController)
 )
 
 /**
@@ -115,7 +123,7 @@ userRouter.post(
  * Method: GET
  * Header: {Authorization: Bearer <access_token>}
  */
-userRouter.get('/me', accessTokenValidator, wrapRequestHandler(getMyProfileController))
+userRouter.get('/me', accessTokenValidator, wrapAsync(getMyProfileController))
 
 /**
  * Description: Update my profile
@@ -138,7 +146,7 @@ userRouter.patch(
     'username',
     'cover_photo'
   ]),
-  wrapRequestHandler(updateMeController)
+  wrapAsync(updateMeController)
 )
 
 /**
@@ -147,7 +155,7 @@ userRouter.patch(
  * Method: GET
 
  */
-userRouter.get('/:username', wrapRequestHandler(getUserProfileController))
+userRouter.get('/:username', wrapAsync(getUserProfileController))
 
 /**
  * Description: Follow someone
@@ -162,7 +170,7 @@ userRouter.post(
   accessTokenValidator,
   verifiedUserValidator,
   followValidator,
-  wrapRequestHandler(followUserController)
+  wrapAsync(followUserController)
 )
 
 /**
@@ -178,7 +186,7 @@ userRouter.delete(
   accessTokenValidator,
   verifiedUserValidator,
   unFollowValidator,
-  wrapRequestHandler(unFollowUserController)
+  wrapAsync(unFollowUserController)
 )
 
 export default userRouter
