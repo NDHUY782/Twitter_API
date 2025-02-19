@@ -370,6 +370,6 @@ export const encodeHLSWithMultipleVideoStreams = async (inputPath: string) => {
     outputSegmentPath,
     resolution
   })
-  console.log('Conver thành công')
+  console.log('Convert thành công')
   return true
 }

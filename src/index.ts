@@ -18,6 +18,7 @@ import mediaRouter from '~/routes/medias.routes'
 import { initFolder } from '~/utils/file'
 import staticRoute from '~/routes/static.routes'
 import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
+import tweetsRouter from '~/routes/tweet.routes'
 
 const router = Router()
 
@@ -30,7 +31,11 @@ dayjs.tz.setDefault('Asia/Bangkok')
 moment.tz.setDefault('Asia/Bangkok')
 
 // connectDB()
-databaseService.connect()
+databaseService.connect().then(() => {
+  databaseService.indexUsers()
+  databaseService.indexRefreshTokens()
+  databaseService.indexFollowers()
+})
 const app = express()
 
 initFolder()
@@ -55,6 +60,7 @@ app.get('/', (_, res: Response) => {
 app.use('/api/users/', userRouter)
 app.use('/api/medias/', mediaRouter)
 app.use('/api/static/', staticRoute)
+app.use('/api/tweet/', tweetsRouter)
 // app.use("/api/category/", categoryRoute);
 // app.use("/api/post", postRoute);
 // app.use("/api/page", pageRoute);

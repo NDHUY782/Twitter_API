@@ -12,7 +12,13 @@ import RefreshToken from '~/models/schemas/RefreshToken.Schema'
 import User from '~/models/schemas/Users.Schema'
 import databaseService from '~/services/database.service'
 import { comparePassword, hashPassword } from '~/utils/crypto'
-import { signEmailVerifyToken, signForgotPasswordToken, signRefreshToken, signToken } from '~/utils/jwt'
+import {
+  signEmailVerifyToken,
+  signForgotPasswordToken,
+  signRefreshToken,
+  signToken,
+  verifyRefreshToken
+} from '~/utils/jwt'
 
 config()
 class UserService {
@@ -28,7 +34,17 @@ class UserService {
       }
     })
   }
-  private signRefreshToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
+  private signRefreshToken({ user_id, verify, exp }: { user_id: string; verify: UserVerifyStatus; exp?: number }) {
+    if (exp) {
+      return signRefreshToken({
+        payload: {
+          user_id,
+          token_type: TokenType.RefreshToken,
+          verify,
+          exp
+        }
+      })
+    }
     return signRefreshToken({
       payload: {
         user_id,
@@ -71,19 +87,13 @@ class UserService {
     return Promise.all([this.signAccessToken({ user_id, verify }), this.signRefreshToken({ user_id, verify })])
   }
 
-  async login({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
-      user_id,
-      verify
+  private decodeRefreshToken(refresh_token: string) {
+    return verifyRefreshToken({
+      token: refresh_token,
+      secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
     })
-    await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
-    )
-    return {
-      access_token,
-      refresh_token
-    }
   }
+
   // async register(payload: RegisterReqBody) {
   //   const { email, password } = payload
   //   /** cách 1: dùng chung check email exist cùng chung api register còn cách 2 là dùng custom trong middleware schema và tạo api check email exist */
@@ -141,8 +151,9 @@ class UserService {
       user_id: user_id.toString(),
       verify: UserVerifyStatus.Unverified
     })
+    const { exp, iat } = await this.decodeRefreshToken(refresh_token)
     await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, exp, iat })
     )
     console.log('token verify email la:', email_verify_token)
     return {
@@ -151,6 +162,20 @@ class UserService {
     }
   }
 
+  async login({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+      user_id,
+      verify
+    })
+    const { exp, iat } = await this.decodeRefreshToken(refresh_token)
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, exp, iat })
+    )
+    return {
+      access_token,
+      refresh_token
+    }
+  }
   async checkEmailExist(email: string) {
     const existEmail = await databaseService.users.findOne({ email })
     return Boolean(existEmail)
@@ -169,19 +194,27 @@ class UserService {
   async refreshToken({
     user_id,
     verify,
-    refresh_token
+    refresh_token,
+    exp
   }: {
     user_id: string
     verify: UserVerifyStatus
     refresh_token: string
+    exp: number
   }) {
     const [new_access_token, new_refresh_token] = await Promise.all([
       this.signAccessToken({ user_id, verify }),
-      this.signRefreshToken({ user_id, verify }),
+      this.signRefreshToken({ user_id, verify, exp }),
       databaseService.refreshTokens.deleteOne({ token: refresh_token })
     ])
+    const decode_refresh_token = await this.decodeRefreshToken(new_refresh_token)
     await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: new_refresh_token })
+      new RefreshToken({
+        user_id: new ObjectId(user_id),
+        token: new_refresh_token,
+        exp: decode_refresh_token.exp,
+        iat: decode_refresh_token.iat
+      })
     )
     return {
       access_token: new_access_token,
@@ -209,6 +242,10 @@ class UserService {
       )
     ])
     const [access_token, refresh_token] = token
+    const { exp, iat } = await this.decodeRefreshToken(refresh_token)
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, exp, iat })
+    )
     return { access_token, refresh_token }
   }
   async resendVerifyEmail(user_id: string) {

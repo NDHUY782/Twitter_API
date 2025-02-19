@@ -1,7 +1,9 @@
 import dotenv from 'dotenv'
+import { union } from 'lodash'
 import { Db, MongoClient, Collection, ServerApiVersion } from 'mongodb'
 import Follower from '~/models/schemas/Followers.Schema'
 import RefreshToken from '~/models/schemas/RefreshToken.Schema'
+import Tweet from '~/models/schemas/Tweet.schema'
 import User from '~/models/schemas/Users.Schema'
 
 dotenv.config()
@@ -43,6 +45,28 @@ class DatabaseService {
     }
   }
 
+  async indexUsers() {
+    const exist = await this.users.indexExists(['email_1_password_1', 'email_1', 'username_1'])
+    if (!exist) {
+      this.users.createIndex({ email: 1, password: 1 })
+      this.users.createIndex({ email: 1 }, { unique: true })
+      this.users.createIndex({ username: 1 }, { unique: true })
+    }
+  }
+  async indexRefreshTokens() {
+    const exist = await this.refreshTokens.indexExists(['token_1', 'exp_1'])
+    if (!exist) {
+      this.refreshTokens.createIndex({ token: 1 })
+      this.refreshTokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 })
+    }
+  }
+  async indexFollowers() {
+    const exist = await this.followers.indexExists(['user_id_1_follower_id_1'])
+    if (!exist) {
+      this.followers.createIndex({ user_id: 1, follower_id: 1 })
+    }
+  }
+
   get users(): Collection<User> {
     return this.db.collection(process.env.DB_USERS_COLLECTION as string)
   }
@@ -51,6 +75,10 @@ class DatabaseService {
   }
   get followers(): Collection<Follower> {
     return this.db.collection(process.env.DB_FOLLOWERS_COLLECTION as string)
+  }
+
+  get tweets(): Collection<Tweet> {
+    return this.db.collection(process.env.DB_TWEETS_COLLECTION as string)
   }
 }
 
