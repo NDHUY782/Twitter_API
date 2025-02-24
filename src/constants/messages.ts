@@ -64,5 +64,6 @@ export const TWEET_MESSAGES = {
   CONTENT_MUST_BE_NON_EMPTY_STRING: 'Content must be non empty string',
   CONTENT_MUST_BE_EMPTY_STRING: 'Content must be empty string',
   HASHTAGS_MUST_BE_AN_ARRAY_OF_STRINGS: 'Hashtags must be an array of strings',
-  MENTIONS_MUST_BE_AN_ARRAY_OF_USER_ID: 'Mentions must be an array of user id'
+  MENTIONS_MUST_BE_AN_ARRAY_OF_USER_ID: 'Mentions must be an array of user id',
+  MEDIAS_MUST_BE_AN_ARRAY_OF_MEDIA_OBJECT: 'Medias must be an array of media object'
 } as const

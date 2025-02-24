@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 import { union } from 'lodash'
 import { Db, MongoClient, Collection, ServerApiVersion } from 'mongodb'
 import Follower from '~/models/schemas/Followers.Schema'
+import Hashtag from '~/models/schemas/Hashtags.Schema'
 import RefreshToken from '~/models/schemas/RefreshToken.Schema'
 import Tweet from '~/models/schemas/Tweet.schema'
 import User from '~/models/schemas/Users.Schema'
@@ -76,9 +77,11 @@ class DatabaseService {
   get followers(): Collection<Follower> {
     return this.db.collection(process.env.DB_FOLLOWERS_COLLECTION as string)
   }
-
   get tweets(): Collection<Tweet> {
     return this.db.collection(process.env.DB_TWEETS_COLLECTION as string)
+  }
+  get hashtag(): Collection<Hashtag> {
+    return this.db.collection(process.env.DB_HASHTAGS_COLLECTION as string)
   }
 }
 

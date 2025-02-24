@@ -23,6 +23,7 @@ import HTTP_STATUS from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
 import { UserVerifyStatus } from '~/constants/enums'
 import { TweetReqBody } from '~/models/requests/Tweet.requests'
+import tweetService from '~/services/tweet.service'
 
 export const createTweetController = async (
   req: Request<ParamsDictionary, any, TweetReqBody>,
@@ -30,5 +31,9 @@ export const createTweetController = async (
   next: NextFunction
 ) => {
   const { user_id } = req.decoded_authorization as TokenPayload
-  // const result = await
+  const result = await tweetService.createTweet(user_id, req.body)
+  return res.json({
+    msg: 'Create Success',
+    result
+  })
 }

@@ -4,7 +4,7 @@ import { JsonWebTokenError } from 'jsonwebtoken'
 import { isEmpty } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { ppid } from 'process'
-import { TweetAudience, TweetType, UserVerifyStatus } from '~/constants/enums'
+import { MediaType, TweetAudience, TweetType, UserVerifyStatus } from '~/constants/enums'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { TWEET_MESSAGES, USERS_MESSAGES } from '~/constants/messages'
 import { REGEX_USERNAME } from '~/constants/regex'
@@ -19,18 +19,19 @@ import { validate } from '~/utils/validation'
 
 const tweetTypes = numberEnumToArray(TweetType)
 const tweetAudience = numberEnumToArray(TweetAudience)
+const mediaTypes = numberEnumToArray(MediaType)
 export const createTweetValidator = validate(
   checkSchema(
     {
       type: {
         isIn: {
-          options: tweetTypes
+          options: [tweetTypes]
         },
         errorMessage: TWEET_MESSAGES.INVALID_TYPE
       },
       audience: {
         isIn: {
-          options: tweetAudience
+          options: [tweetAudience]
         },
         errorMessage: TWEET_MESSAGES.INVALID_AUDIENCE
       },
@@ -40,13 +41,14 @@ export const createTweetValidator = validate(
             const type = req.body.type as TweetType
             if (
               [TweetType.Retweet, TweetType.QuoteTweet, TweetType.Comment].includes(type) &&
-              ObjectId.isValid(value)
+              !ObjectId.isValid(value)
             ) {
               throw new Error(TWEET_MESSAGES.INVALID_PARENT_ID)
             }
             if (type == TweetType.Tweet && value !== null) {
               throw new Error(TWEET_MESSAGES.PARENT_ID_MUST_BE_NULL)
             }
+            return true
           }
         }
       },
@@ -68,9 +70,10 @@ export const createTweetValidator = validate(
               throw new Error(TWEET_MESSAGES.CONTENT_MUST_BE_NON_EMPTY_STRING)
             }
             //Nếu type là retweet thì content phải là ""
-            if (type == TweetType.Retweet && value !== '') {
+            if (type == TweetType.Retweet && value != '') {
               throw new Error(TWEET_MESSAGES.CONTENT_MUST_BE_EMPTY_STRING)
             }
+            return true
           }
         }
       },
@@ -79,9 +82,10 @@ export const createTweetValidator = validate(
         custom: {
           options: (value, { req }) => {
             //Yêu cầu mỗi ptu trong array đều phải là string
-            if (!value.every((item: any) => typeof item == 'string')) {
+            if (value.some((item: any) => typeof item !== 'string')) {
               throw new Error(TWEET_MESSAGES.HASHTAGS_MUST_BE_AN_ARRAY_OF_STRINGS)
             }
+            return true
           }
         }
       },
@@ -90,9 +94,26 @@ export const createTweetValidator = validate(
         custom: {
           options: (value, { req }) => {
             //Yêu cầu mỗi ptu trong array đều phải là user_id
-            if (!value.every((item: any) => ObjectId.isValid(item))) {
+            if (value.some((item: any) => !ObjectId.isValid(item))) {
               throw new Error(TWEET_MESSAGES.MENTIONS_MUST_BE_AN_ARRAY_OF_USER_ID)
             }
+            return true
+          }
+        }
+      },
+      medias: {
+        isArray: true,
+        custom: {
+          options: (value, { req }) => {
+            //Yêu cầu mỗi ptu trong array đều phải là user_id
+            if (
+              value.some((item: any) => {
+                return typeof item.url !== 'string' || !mediaTypes.includes(item.type)
+              })
+            ) {
+              throw new Error(TWEET_MESSAGES.MEDIAS_MUST_BE_AN_ARRAY_OF_MEDIA_OBJECT)
+            }
+            return true
           }
         }
       }

@@ -9,6 +9,7 @@ import { ErrorWithStatus } from '~/models/Errors'
 import { TweetReqBody } from '~/models/requests/Tweet.requests'
 import { LoginReqBody, RegisterReqBody, UpdateMeReqBody } from '~/models/requests/User.requests'
 import Follower from '~/models/schemas/Followers.Schema'
+import Hashtag from '~/models/schemas/Hashtags.Schema'
 import RefreshToken from '~/models/schemas/RefreshToken.Schema'
 import Tweet from '~/models/schemas/Tweet.schema'
 import User from '~/models/schemas/Users.Schema'
@@ -95,54 +96,41 @@ class TweetService {
       secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
     })
   }
-
-  // async register(payload: RegisterReqBody) {
-  //   const { email, password } = payload
-  //   /** cách 1: dùng chung check email exist cùng chung api register còn cách 2 là dùng custom trong middleware schema và tạo api check email exist */
-
-  //   // const existEmail = await databaseService.users.findOne({
-  //   //   email: email
-  //   // })
-  //   // if (existEmail) {
-  //   //   return false
-  //   // }
-
-  //   /**---------------------------------------------------------------------------- */
-
-  //   const result = await databaseService.users.insertOne(
-  //     new User({
-  //       ...payload,
-  //       data_of_birth: new Date(payload.date_of_birth),
-  //       password: hashPassword(payload.password)
-  //     })
-  //   )
-
-  //   const user_id = result.insertedId.toString()
-  //   const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
-  //   await databaseService.refreshTokens.insertOne(
-  //     new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
-  //   )
-  //   const email_verify_token = await this.signEmailVerifyToken({
-  //     user_id: user_id.toString(),
-  //     verify: UserVerifyStatus.Unverified
-  //   })
-  //   console.log('email verify token là: ', email_verify_token)
-  //   // Cập nhật email_verify_token cho người dùng
-  //   await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, { $set: { email_verify_token } })
-  //   return {
-  //     access_token,
-  //     refresh_token
-  //   }
-  // }
-  async createTweet(payload: TweetReqBody) {
-    const user_id = new ObjectId()
-
-    // await databaseService.tweets.insertOne(
-    //   new Tweet({
-    //     ...payload,
-    //     user_id: user_id
-    //   })
-    // )
+  async checkAndCreateHashtag(hashtags: string[]) {
+    const hashtagDocuments = await Promise.all(
+      hashtags.map((hashtag) => {
+        //Tìm hashtag trong database không thì tạo mới
+        return databaseService.hashtag.findOneAndUpdate(
+          {
+            name: hashtag
+          },
+          {
+            $setOnInsert: new Hashtag({ name: hashtag })
+          },
+          {
+            upsert: true
+          }
+        )
+      })
+    )
+    return hashtagDocuments
+  }
+  async createTweet(user_id: string, body: TweetReqBody) {
+    const hashtag = await this.checkAndCreateHashtag(body.hashtags)
+    const result = await databaseService.tweets.insertOne(
+      new Tweet({
+        audience: body.audience,
+        content: body.content,
+        hashtags: [],
+        mentions: body.mentions,
+        medias: body.medias,
+        parent_id: body.parent_id,
+        type: body.type,
+        user_id: new ObjectId(user_id)
+      })
+    )
+    const data = await databaseService.tweets.findOne({ _id: result.insertedId })
+    return data
   }
 }
 
