@@ -19,6 +19,8 @@ import { initFolder } from '~/utils/file'
 import staticRoute from '~/routes/static.routes'
 import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import tweetsRouter from '~/routes/tweet.routes'
+import bookmarksRoute from '~/routes/bookmarks.routes'
+import likesRoute from '~/routes/likes.routes'
 
 const router = Router()
 
@@ -61,16 +63,8 @@ app.use('/api/users/', userRouter)
 app.use('/api/medias/', mediaRouter)
 app.use('/api/static/', staticRoute)
 app.use('/api/tweet/', tweetsRouter)
-// app.use("/api/category/", categoryRoute);
-// app.use("/api/post", postRoute);
-// app.use("/api/page", pageRoute);
-// app.use("/api/comment/", commentRoute);
-// app.use("/api/profile/", profileRoute);
-// app.use("/api/group/", groupRoute);
-// app.use("/api/group-media/", groupMediaRoute);
-// app.use("/api/conversation/", conversationRoute);
-// app.use("/api/chat-group/", chatGroupRoute);
-// app.use("/api/send-mess/", messRoute);
+app.use('/api/bookmark/', bookmarksRoute)
+app.use('/api/like/', likesRoute)
 
 app.use('static/video', express.static(UPLOAD_VIDEO_DIR))
 app.use(defaultErrorHandler)

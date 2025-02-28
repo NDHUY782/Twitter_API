@@ -564,3 +564,13 @@ export const changePasswordValidator = validate(
     ['body']
   )
 )
+export const isUserLoggedInValidator = (middleware: (req: Request, res: Response, next: NextFunction) => void) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // req.header là header chung user gửi lên cái gì thì chúng ta nhận lại được cái đấy, là 1 func phải truyền key, không phân biệt chữ hoa thường
+    // req.header là của express lấy ra từ req.header có quy định chữ hoa chữ thường dùng console.log(req.header.authorization match với Authorization)
+    if (req.headers.authorization) {
+      return middleware(req, res, next)
+    }
+    next()
+  }
+}

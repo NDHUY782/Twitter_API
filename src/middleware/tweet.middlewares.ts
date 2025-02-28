@@ -1,20 +1,15 @@
 import { NextFunction, Request, Response } from 'express'
 import { checkSchema, ParamSchema } from 'express-validator'
-import { JsonWebTokenError } from 'jsonwebtoken'
 import { isEmpty } from 'lodash'
 import { ObjectId } from 'mongodb'
-import { ppid } from 'process'
-import { MediaType, TweetAudience, TweetType, UserVerifyStatus } from '~/constants/enums'
+import { MediaType, TweetAudience, TweetType } from '~/constants/enums'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { TWEET_MESSAGES, USERS_MESSAGES } from '~/constants/messages'
-import { REGEX_USERNAME } from '~/constants/regex'
 import { ErrorWithStatus } from '~/models/Errors'
-import { TokenPayload } from '~/models/requests/User.requests'
+import Tweet from '~/models/schemas/Tweet.schema'
 import databaseService from '~/services/database.service'
-import userService from '~/services/users.service'
 import { numberEnumToArray } from '~/utils/commons'
-import { hashPassword } from '~/utils/crypto'
-import { verifyEmailToken, verifyForgotPasswordToken, verifyRefreshToken, verifyToken } from '~/utils/jwt'
+import { wrapRequestHandler } from '~/utils/handlers'
 import { validate } from '~/utils/validation'
 
 const tweetTypes = numberEnumToArray(TweetType)
@@ -121,3 +116,54 @@ export const createTweetValidator = validate(
     ['body']
   )
 )
+
+export const tweetValidator = validate(
+  checkSchema(
+    {
+      tweet_id: {
+        isMongoId: {
+          errorMessage: TWEET_MESSAGES.INVALID_TWEET_ID
+        },
+        custom: {
+          options: async (value, { req }) => {
+            if (!ObjectId.isValid(value)) {
+              throw new ErrorWithStatus({
+                status: HTTP_STATUS.BAD_REQUEST,
+                message: TWEET_MESSAGES.INVALID_TWEET_ID
+              })
+            }
+            const tweet = await databaseService.tweets.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!tweet) {
+              throw new ErrorWithStatus({
+                status: HTTP_STATUS.NOT_FOUND,
+                message: TWEET_MESSAGES.TWEET_NOT_FOUND
+              })
+            }
+            ;(req as Request).tweet = tweet
+            return true
+          }
+        }
+      }
+    },
+    ['params', 'body']
+  )
+)
+
+//Muốn sử dụng async await trong handler phải có try catch nếu không thì dùng wrapHandler
+export const audienceValidator = wrapRequestHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const tweet = req.tweet as Tweet
+  if (tweet.audience === TweetAudience.TwitterCircle) {
+    //Kiểm tra user xem tweet này đã đăng nhập hay chưa
+    if (!req.decoded_authorization) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.UNAUTHORIZED,
+        message: USERS_MESSAGES.ACCESS_TOKEN_IS_REQUIRED
+      })
+    }
+    //Kiểm tra tài khoản tasc giar có ổn (bị khóa hay bị xóa)
+    const { user_id } = req.decoded_authorization
+    const author = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+  }
+})

@@ -1,7 +1,7 @@
 import { verify } from 'crypto'
 import { config } from 'dotenv'
 import { update } from 'lodash'
-import { ObjectId } from 'mongodb'
+import { ObjectId, WithId } from 'mongodb'
 import { TokenType, UserVerifyStatus } from '~/constants/enums'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
@@ -100,28 +100,30 @@ class TweetService {
     const hashtagDocuments = await Promise.all(
       hashtags.map((hashtag) => {
         //Tìm hashtag trong database không thì tạo mới
-        return databaseService.hashtag.findOneAndUpdate(
+        return databaseService.hashtags.findOneAndUpdate(
           {
             name: hashtag
           },
           {
-            $setOnInsert: new Hashtag({ name: hashtag })
+            $setOnInsert: { name: hashtag }
           },
           {
-            upsert: true
+            upsert: true,
+            returnDocument: 'after'
           }
         )
       })
     )
-    return hashtagDocuments
+    // console.log(hashtagDocuments)
+    return hashtagDocuments.map((hashtag) => (hashtag as WithId<Hashtag>)._id)
   }
   async createTweet(user_id: string, body: TweetReqBody) {
-    const hashtag = await this.checkAndCreateHashtag(body.hashtags)
+    const hashtags = await this.checkAndCreateHashtag(body.hashtags)
     const result = await databaseService.tweets.insertOne(
       new Tweet({
         audience: body.audience,
         content: body.content,
-        hashtags: [],
+        hashtags,
         mentions: body.mentions,
         medias: body.medias,
         parent_id: body.parent_id,

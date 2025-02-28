@@ -18,6 +18,7 @@ interface UserType {
   username?: string
   avatar?: string
   cover_photo?: string
+  twitter_circle?: ObjectId[] //danh sách chứa những người thêm mà user add vào circle vào coi tweet
 }
 
 export default class User {
@@ -37,7 +38,7 @@ export default class User {
   username: string
   avatar: string
   cover_photo: string
-
+  twitter_circle?: ObjectId[]
   constructor(user: UserType) {
     const date = new Date()
     this._id = user._id
@@ -56,5 +57,6 @@ export default class User {
     this.location = user.location || ''
     this.avatar = user.avatar || ''
     this.cover_photo = user.cover_photo || ''
+    this.twitter_circle = user.twitter_circle || []
   }
 }
