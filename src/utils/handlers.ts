@@ -24,10 +24,20 @@ export const wrapAsync = <T extends Request, U extends Response>(
   }
 }
 
-export const wrapRequestHandler = <P = ParamsDictionary, ResBody = any, ReqBody = any, ReqQuery = core.Query>(
-  func: RequestHandler<P, ResBody, ReqBody, ReqQuery>
-) => {
-  return async (req: Request<P, ResBody, ReqBody, ReqQuery>, res: Response, next: NextFunction): Promise<void> => {
+//------------ĐỂ DÀNH ĐỂ TEST NẾU BỊ LỖI----------------
+// export const wrapRequestHandler = <P = ParamsDictionary, ResBody = any, ReqBody = any, ReqQuery = core.Query>(
+//   func: RequestHandler<P, ResBody, ReqBody, ReqQuery>
+// ) => {
+//   return async (req: Request<P, ResBody, ReqBody, ReqQuery>, res: Response, next: NextFunction): Promise<void> => {
+//     try {
+//       await func(req, res, next)
+//     } catch (error) {
+//       next(error)
+//     }
+//   }
+// }
+export const wrapRequestHandler = <P>(func: RequestHandler<P, any, any, any>) => {
+  return async (req: Request<P>, res: Response, next: NextFunction) => {
     try {
       await func(req, res, next)
     } catch (error) {

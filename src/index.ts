@@ -21,7 +21,7 @@ import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import tweetsRouter from '~/routes/tweet.routes'
 import bookmarksRoute from '~/routes/bookmarks.routes'
 import likesRoute from '~/routes/likes.routes'
-
+// import '~/utils/fake'
 const router = Router()
 
 const PORT = process.env.PORT || 4000

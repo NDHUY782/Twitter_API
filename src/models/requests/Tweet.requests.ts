@@ -2,7 +2,7 @@ import { JwtPayload } from 'jsonwebtoken'
 import { ObjectId } from 'mongodb'
 import { TweetAudience, TweetType } from '~/constants/enums'
 import { Media } from '~/models/Other'
-
+import { ParamsDictionary, Query } from 'express-serve-static-core'
 export interface TweetReqBody {
   type: TweetType
   audience: TweetAudience
@@ -11,4 +11,12 @@ export interface TweetReqBody {
   hashtags: string[]
   mentions: string[]
   medias: Media[]
+}
+export interface TweetParams extends ParamsDictionary {
+  tweet_id: string
+}
+export interface TweetQuery extends Query {
+  limit: string
+  page: string
+  tweet_type: string
 }

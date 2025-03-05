@@ -143,7 +143,7 @@ class UserService {
         ...payload,
         _id: user_id,
         email_verify_token,
-        data_of_birth: new Date(payload.date_of_birth),
+        date_of_birth: new Date(payload.date_of_birth),
         password: hashPassword(payload.password)
       })
     )

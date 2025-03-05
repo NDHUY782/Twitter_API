@@ -6,7 +6,7 @@ interface UserType {
   name: string
   email: string
   password: string
-  data_of_birth: Date
+  date_of_birth: Date
   created_at?: Date
   updated_at?: Date
   email_verify_token?: string
@@ -18,7 +18,7 @@ interface UserType {
   username?: string
   avatar?: string
   cover_photo?: string
-  twitter_circle?: ObjectId[] //danh sách chứa những người thêm mà user add vào circle vào coi tweet
+  twitter_circle?: ObjectId[]
 }
 
 export default class User {
@@ -26,7 +26,7 @@ export default class User {
   name: string
   email: string
   password: string
-  data_of_birth: Date
+  date_of_birth: Date
   created_at: Date
   updated_at: Date
   email_verify_token: string
@@ -38,14 +38,14 @@ export default class User {
   username: string
   avatar: string
   cover_photo: string
-  twitter_circle?: ObjectId[]
+  twitter_circle?: ObjectId[] //danh sách chứa những người thêm mà user add vào circle vào coi tweet
   constructor(user: UserType) {
     const date = new Date()
     this._id = user._id
     this.name = user.name || ''
     this.email = user.email
     this.password = user.password
-    this.data_of_birth = user.data_of_birth || new Date()
+    this.date_of_birth = user.date_of_birth || new Date()
     this.created_at = user.created_at || date
     this.updated_at = user.updated_at || date
     this.email_verify_token = user.email_verify_token || ''

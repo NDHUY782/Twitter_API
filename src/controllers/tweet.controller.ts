@@ -21,9 +21,10 @@ import {
 import { ObjectId } from 'mongodb'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
-import { UserVerifyStatus } from '~/constants/enums'
-import { TweetReqBody } from '~/models/requests/Tweet.requests'
+import { TweetType, UserVerifyStatus } from '~/constants/enums'
+import { TweetParams, TweetQuery, TweetReqBody } from '~/models/requests/Tweet.requests'
 import tweetService from '~/services/tweet.service'
+import { update } from 'lodash'
 
 export const createTweetController = async (
   req: Request<ParamsDictionary, any, TweetReqBody>,
@@ -42,14 +43,45 @@ export const getTweetController = async (
   res: Response,
   next: NextFunction
 ) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const result = await tweetService.increaseView(req.params.tweet_id, user_id)
+  const tweet = {
+    ...req.tweet,
+    guest_views: result.guest_views,
+    user_views: result.user_views,
+    views: result.guest_views + result.user_views,
+    updated_at: result.updated_at
+  }
+
   return res.json({
     msg: 'Get tweet detail',
-    result: 'ok'
+    result: tweet
   })
-  // const { user_id } = req.decoded_authorization as TokenPayload
-  // const result = await tweetService.createTweet(user_id, req.body)
-  // return res.json({
-  //   msg: 'Create Success',
-  //   result
-  // })
+}
+export const getTweetChildrenController = async (
+  req: Request<TweetParams, any, any, TweetQuery>,
+  res: Response,
+  next: NextFunction
+) => {
+  const limit = Number(req.query.limit)
+  const page = Number(req.query.page)
+  const tweet_type = Number(req.query.tweet_type) as TweetType
+  const user_id = req.decoded_authorization?.user_id
+  const { total, tweets } = await tweetService.getTweetChildren({
+    tweet_id: req.params.tweet_id,
+    limit,
+    page,
+    tweet_type,
+    user_id
+  })
+  return res.json({
+    msg: 'Get tweet children Success',
+    result: {
+      tweets,
+      tweet_type,
+      limit,
+      page,
+      total_page: Math.ceil(total / limit)
+    }
+  })
 }

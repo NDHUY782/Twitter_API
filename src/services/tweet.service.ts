@@ -1,101 +1,14 @@
-import { verify } from 'crypto'
 import { config } from 'dotenv'
 import { update } from 'lodash'
 import { ObjectId, WithId } from 'mongodb'
-import { TokenType, UserVerifyStatus } from '~/constants/enums'
-import HTTP_STATUS from '~/constants/httpStatus'
-import { USERS_MESSAGES } from '~/constants/messages'
-import { ErrorWithStatus } from '~/models/Errors'
+import { TweetType } from '~/constants/enums'
 import { TweetReqBody } from '~/models/requests/Tweet.requests'
-import { LoginReqBody, RegisterReqBody, UpdateMeReqBody } from '~/models/requests/User.requests'
-import Follower from '~/models/schemas/Followers.Schema'
 import Hashtag from '~/models/schemas/Hashtags.Schema'
-import RefreshToken from '~/models/schemas/RefreshToken.Schema'
 import Tweet from '~/models/schemas/Tweet.schema'
-import User from '~/models/schemas/Users.Schema'
 import databaseService from '~/services/database.service'
-import { comparePassword, hashPassword } from '~/utils/crypto'
-import {
-  signEmailVerifyToken,
-  signForgotPasswordToken,
-  signRefreshToken,
-  signToken,
-  verifyRefreshToken
-} from '~/utils/jwt'
 
 config()
 class TweetService {
-  private signAccessToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
-    return signToken({
-      payload: {
-        user_id,
-        token_type: TokenType.AccessToken,
-        verify
-      },
-      options: {
-        expiresIn: process.env.JWT_SECRET_EXPIRES_IN
-      }
-    })
-  }
-  private signRefreshToken({ user_id, verify, exp }: { user_id: string; verify: UserVerifyStatus; exp?: number }) {
-    if (exp) {
-      return signRefreshToken({
-        payload: {
-          user_id,
-          token_type: TokenType.RefreshToken,
-          verify,
-          exp
-        }
-      })
-    }
-    return signRefreshToken({
-      payload: {
-        user_id,
-        token_type: TokenType.RefreshToken,
-        verify
-      },
-      options: {
-        expiresIn: process.env.JWT_SECRET_REFRESH_TOKEN_EXPIRES_IN
-      }
-    })
-  }
-  private signEmailVerifyToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
-    return signEmailVerifyToken({
-      payload: {
-        user_id,
-        token_type: TokenType.EmailVerifyToken,
-        verify
-      },
-      privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN,
-      options: {
-        expiresIn: process.env.JWT_SECRET_REFRESH_TOKEN_EXPIRES_IN
-      }
-    })
-  }
-  private signForgotPasswordToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
-    return signForgotPasswordToken({
-      payload: {
-        user_id,
-        token_type: TokenType.ForgotPasswordToken,
-        verify
-      },
-      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN,
-      options: {
-        expiresIn: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN_EXPIRES_IN
-      }
-    })
-  }
-
-  private signAccessAndRefreshToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
-    return Promise.all([this.signAccessToken({ user_id, verify }), this.signRefreshToken({ user_id, verify })])
-  }
-
-  private decodeRefreshToken(refresh_token: string) {
-    return verifyRefreshToken({
-      token: refresh_token,
-      secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
-    })
-  }
   async checkAndCreateHashtag(hashtags: string[]) {
     const hashtagDocuments = await Promise.all(
       hashtags.map((hashtag) => {
@@ -133,6 +46,197 @@ class TweetService {
     )
     const data = await databaseService.tweets.findOne({ _id: result.insertedId })
     return data
+  }
+  async increaseView(tweet_id: string, user_id?: string) {
+    const inc = user_id ? { user_views: 1 } : { guest_views: 1 }
+    const result = await databaseService.tweets.findOneAndUpdate(
+      { _id: new ObjectId(tweet_id) },
+      {
+        $inc: inc,
+        $currentDate: {
+          updated_at: true
+        }
+      },
+      {
+        returnDocument: 'after',
+        projection: {
+          guest_views: 1,
+          user_views: 1,
+          updated_at: 1
+        }
+      }
+    )
+    // if (!result) {
+    //   throw new Error('Tweet not found')
+    // }
+    return result as WithId<{
+      guest_views: number
+      user_views: number
+      updated_at: Date
+    }>
+  }
+  async getTweetChildren({
+    user_id,
+    tweet_id,
+    limit,
+    page,
+    tweet_type
+  }: {
+    user_id?: string
+    tweet_id: string
+    limit: number
+    page: number
+    tweet_type: TweetType
+  }) {
+    const tweets = await databaseService.tweets
+      .aggregate<Tweet>([
+        {
+          $match: {
+            parent_id: new ObjectId(tweet_id),
+            type: tweet_type
+          }
+        },
+        {
+          $lookup: {
+            from: 'hashtags',
+            localField: 'hashtags',
+            foreignField: '_id',
+            as: 'hashtags'
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'mentions',
+            foreignField: '_id',
+            as: 'mentions'
+          }
+        },
+        {
+          $addFields: {
+            mentions: {
+              $map: {
+                input: '$mentions',
+                as: 'mentions',
+                in: {
+                  _id: '$$mentions._id',
+                  name: '$$mentions.name',
+                  username: '$$mentions.username',
+                  email: '$$mentions.email'
+                }
+              }
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: 'bookmarks',
+            localField: '_id',
+            foreignField: 'tweet_id',
+            as: 'bookmarks'
+          }
+        },
+        {
+          $lookup: {
+            from: 'likes',
+            localField: '_id',
+            foreignField: 'tweet_id',
+            as: 'likes'
+          }
+        },
+        {
+          $lookup: {
+            from: 'tweets',
+            localField: '_id',
+            foreignField: 'parent_id',
+            as: 'tweet_children'
+          }
+        },
+        {
+          $addFields: {
+            bookmarks: {
+              $size: '$bookmarks'
+            },
+            likes: {
+              $size: '$likes'
+            },
+            retweet_count: {
+              $size: {
+                $filter: {
+                  input: '$tweet_children',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.type', 1]
+                  }
+                }
+              }
+            },
+            comment_count: {
+              $size: {
+                $filter: {
+                  input: '$tweet_children',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.type', 2]
+                  }
+                }
+              }
+            },
+            quote_count: {
+              $size: {
+                $filter: {
+                  input: '$tweet_children',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.type', 3]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            tweet_children: 0
+          }
+        }
+      ])
+      .toArray()
+
+    const ids = tweets.map((tweet) => tweet._id as ObjectId)
+    const inc = user_id ? { user_views: 1 } : { guest_views: 1 }
+    const date = new Date()
+    const [, total] = await Promise.all([
+      databaseService.tweets.updateMany(
+        {
+          _id: {
+            $in: ids
+          }
+        },
+        {
+          $inc: inc,
+          $set: {
+            updated_at: date
+          }
+        }
+      ),
+      databaseService.tweets.countDocuments({
+        parent_id: new ObjectId(tweet_id),
+        type: tweet_type
+      })
+    ])
+    tweets.forEach((tweet) => {
+      tweet.updated_at = date
+      if (user_id) {
+        tweet.user_views += 1
+      } else {
+        tweet.guest_views += 1
+      }
+    })
+    return {
+      tweets,
+      total
+    }
   }
 }
 

@@ -68,5 +68,9 @@ export const TWEET_MESSAGES = {
   MENTIONS_MUST_BE_AN_ARRAY_OF_USER_ID: 'Mentions must be an array of user id',
   MEDIAS_MUST_BE_AN_ARRAY_OF_MEDIA_OBJECT: 'Medias must be an array of media object',
   INVALID_TWEET_ID: 'Invalid tweet id',
-  TWEET_NOT_FOUND: 'Tweet not found'
+  TWEET_NOT_FOUND: 'Tweet not found',
+  TWEET_IS_NOT_PUBLIC: 'Tweet is not public',
+  INVALID_TWEET_TYPE: 'Invalid tweet type',
+  INVALID_LIMIT: 'Invalid limit - Maximum is 100',
+  INVALID_PAGE: 'Page >= 1'
 } as const
