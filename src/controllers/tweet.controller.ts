@@ -22,7 +22,7 @@ import { ObjectId } from 'mongodb'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
 import { TweetType, UserVerifyStatus } from '~/constants/enums'
-import { TweetParams, TweetQuery, TweetReqBody } from '~/models/requests/Tweet.requests'
+import { Pagination, TweetParams, TweetQuery, TweetReqBody } from '~/models/requests/Tweet.requests'
 import tweetService from '~/services/tweet.service'
 import { update } from 'lodash'
 
@@ -83,5 +83,23 @@ export const getTweetChildrenController = async (
       page,
       total_page: Math.ceil(total / limit)
     }
+  })
+}
+export const getNewFeedController = async (
+  req: Request<ParamsDictionary, any, any, Pagination>,
+  res: Response,
+  next: NextFunction
+) => {
+  const limit = Number(req.query.limit)
+  const page = Number(req.query.page)
+  const user_id = req.decoded_authorization?.user_id as string
+  const result = await tweetService.getNewFeeds({
+    user_id,
+    limit,
+    page
+  })
+  res.json({
+    msg: 'Get new feed Success',
+    result: result
   })
 }
