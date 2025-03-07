@@ -25,6 +25,7 @@ import { TweetType, UserVerifyStatus } from '~/constants/enums'
 import { Pagination, TweetParams, TweetQuery, TweetReqBody } from '~/models/requests/Tweet.requests'
 import tweetService from '~/services/tweet.service'
 import { update } from 'lodash'
+import { resolveSoa } from 'dns'
 
 export const createTweetController = async (
   req: Request<ParamsDictionary, any, TweetReqBody>,
@@ -98,8 +99,13 @@ export const getNewFeedController = async (
     limit,
     page
   })
-  res.json({
+  return res.json({
     msg: 'Get new feed Success',
-    result: result
+    result: {
+      tweets: result.tweets,
+      limit,
+      page,
+      total_page: Math.ceil(result.total / limit)
+    }
   })
 }

@@ -21,6 +21,7 @@ import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import tweetsRouter from '~/routes/tweet.routes'
 import bookmarksRoute from '~/routes/bookmarks.routes'
 import likesRoute from '~/routes/likes.routes'
+import searchRouter from '~/routes/search.routes'
 // import '~/utils/fake'
 const router = Router()
 
@@ -37,6 +38,7 @@ databaseService.connect().then(() => {
   databaseService.indexUsers()
   databaseService.indexRefreshTokens()
   databaseService.indexFollowers()
+  databaseService.indexTweets()
 })
 const app = express()
 
@@ -65,6 +67,7 @@ app.use('/api/static/', staticRoute)
 app.use('/api/tweet/', tweetsRouter)
 app.use('/api/bookmark/', bookmarksRoute)
 app.use('/api/like/', likesRoute)
+app.use('/api/search/', searchRouter)
 
 app.use('static/video', express.static(UPLOAD_VIDEO_DIR))
 app.use(defaultErrorHandler)
