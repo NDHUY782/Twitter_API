@@ -1,27 +1,65 @@
 import { config } from 'dotenv'
 import { ObjectId, WithId } from 'mongodb'
-import { TokenType, TweetType, UserVerifyStatus } from '~/constants/enums'
-import HTTP_STATUS from '~/constants/httpStatus'
-import { USERS_MESSAGES } from '~/constants/messages'
-import { ErrorWithStatus } from '~/models/Errors'
-import { BookmarkTweetReqBody } from '~/models/requests/Bookmark.requests'
-import { SearchQuery } from '~/models/requests/Search.requests'
-import Bookmark from '~/models/schemas/Bookmark.Schena'
-import Tweet from '~/models/schemas/Tweet.schema'
+import { MediaType, MediaTypeQuery, TweetType } from '~/constants/enums'
 import databaseService from '~/services/database.service'
 
 config()
 class SearchService {
-  async search({ limit, page, content, user_id }: { limit: number; page: number; content: string; user_id: string }) {
+  async search({
+    limit,
+    page,
+    content,
+    media_type,
+    user_id,
+    people_follow
+  }: {
+    limit: number
+    page: number
+    content: string
+    media_type?: MediaTypeQuery
+    user_id: string
+    people_follow?: string
+  }) {
+    const $match: any = {
+      $text: {
+        $search: content
+      }
+    }
+    if (media_type) {
+      if (media_type === MediaTypeQuery.Image) {
+        $match['medias.type'] = MediaType.Image
+      } else if (media_type === MediaTypeQuery.Video) {
+        $match['medias.type'] = {
+          $in: [MediaType.Video, MediaType.HLS]
+        }
+      }
+    }
+    if (people_follow && people_follow == '1') {
+      const user_id_object = new ObjectId(user_id)
+      const followed_user_ids = await databaseService.followers
+        .find(
+          {
+            user_id: user_id_object
+          },
+          {
+            projection: {
+              followed_user_id: 1,
+              _id: 0
+            }
+          }
+        )
+        .toArray()
+      const ids = followed_user_ids.map((item) => item.followed_user_id)
+      ids.push(user_id_object)
+      $match['user_id'] = {
+        $in: ids
+      }
+    }
     const [tweets, total] = await Promise.all([
       databaseService.tweets
         .aggregate([
           {
-            $match: {
-              $text: {
-                $search: content
-              }
-            }
+            $match
           },
           {
             $lookup: {
@@ -182,11 +220,7 @@ class SearchService {
       databaseService.tweets
         .aggregate([
           {
-            $match: {
-              $text: {
-                $search: content
-              }
-            }
+            $match
           },
           {
             $lookup: {
