@@ -17,10 +17,10 @@ COPY . .
 RUN npm run build
 
 # Chạy lệnh này để xuất biến môi trường
-ENV PORT=4000
+ENV PORT=5000
 
 # Mở cổng 4000
 EXPOSE 5000
 
 # Chạy ứng dụng
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
