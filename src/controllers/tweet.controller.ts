@@ -99,7 +99,7 @@ export const getNewFeedController = async (
     limit,
     page
   })
-  return res.json({
+  res.json({
     msg: 'Get new feed Success',
     result: {
       tweets: result.tweets,

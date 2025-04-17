@@ -8,7 +8,6 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import moment from 'moment-timezone'
 import bodyParser from 'body-parser'
-// import { connectDB } from './config/db'
 import databaseService from './services/database.service'
 
 import { Router } from 'express'
@@ -22,7 +21,13 @@ import tweetsRouter from '~/routes/tweet.routes'
 import bookmarksRoute from '~/routes/bookmarks.routes'
 import likesRoute from '~/routes/likes.routes'
 import searchRouter from '~/routes/search.routes'
-// import '~/utils/fake'
+
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+import Conversation from '~/models/schemas/Conversation.Schema'
+import conversationRoute from '~/routes/conversation.routes'
+import { ObjectId } from 'mongodb'
+
 const router = Router()
 
 const PORT = process.env.PORT || 4000
@@ -68,6 +73,7 @@ app.use('/api/tweet/', tweetsRouter)
 app.use('/api/bookmark/', bookmarksRoute)
 app.use('/api/like/', likesRoute)
 app.use('/api/search/', searchRouter)
+app.use('/api/conversations/', conversationRoute)
 
 app.use('static/video', express.static(UPLOAD_VIDEO_DIR))
 app.use(defaultErrorHandler)
@@ -77,6 +83,46 @@ app.use(defaultErrorHandler)
 //   res.status(400).json({ message: err.message })
 // })
 
-const server = app.listen(PORT, () => {
+const httpServer = createServer(app)
+const io = new Server(httpServer, {
+  cors: {
+    origin: true
+  }
+})
+
+const users: {
+  [key: string]: {
+    socket_id: string
+  }
+} = {}
+io.on('connection', (socket) => {
+  console.log('Client connected: ', socket)
+  const user_id = socket.handshake.auth._id
+  // const user_id = socket.handshake.query.user_id
+  users[user_id] = {
+    socket_id: socket.id
+  }
+  socket.on('message', async (data) => {
+    const receiver_socket_id = users[data.to].socket_id
+
+    await databaseService.conversations.insertOne(
+      new Conversation({
+        sender_id: new ObjectId(data.from),
+        receiver_id: new ObjectId(data.to),
+        content: data.content
+      })
+    )
+
+    socket.to(receiver_socket_id).emit('receive message', {
+      from: user_id,
+      content: data.content
+    })
+  })
+  socket.on('disconnect', () => {
+    delete users[user_id]
+  })
+})
+
+const server = httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
 })

@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 import { union } from 'lodash'
 import { Db, MongoClient, Collection, ServerApiVersion } from 'mongodb'
 import Bookmark from '~/models/schemas/Bookmark.Schena'
+import Conversation from '~/models/schemas/Conversation.Schema'
 import Follower from '~/models/schemas/Followers.Schema'
 import Hashtag from '~/models/schemas/Hashtags.Schema'
 import Like from '~/models/schemas/Like.Schema'
@@ -96,6 +97,9 @@ class DatabaseService {
   }
   get likes(): Collection<Like> {
     return this.db.collection(process.env.DB_LIKES_COLLECTION as string)
+  }
+  get conversations(): Collection<Conversation> {
+    return this.db.collection(process.env.DB_CONVERSATIONS_COLLECTION as string)
   }
 }
 
