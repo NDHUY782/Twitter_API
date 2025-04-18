@@ -65,10 +65,6 @@ app.use(
 app.get('/', (_, res: Response) => {
   res.send('Twitter server is running')
 })
-app.get('/hello', (_, res: Response) => {
-  res.send('Twitter server is running... Hello!')
-})
-
 app.use('/api/users/', userRouter)
 app.use('/api/medias/', mediaRouter)
 app.use('/api/static/', staticRoute)
