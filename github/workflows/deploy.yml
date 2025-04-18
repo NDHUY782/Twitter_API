@@ -3,7 +3,7 @@ name: Deploy to EC2 via SSH
 on:
   push:
     branches:
-      - main # chỉ chạy khi push vào branch main
+      - main
 
 jobs:
   deploy:
@@ -19,8 +19,11 @@ jobs:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       - name: Deploy to EC2
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-26-97-252.ap-southeast-2.compute.amazonaws.com << 'EOF'
+          ssh -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
             cd ~/Twitter_API
             git pull origin main
             sudo docker-compose down
