@@ -63,7 +63,7 @@ app.use(
 
 // Root route
 app.get('/', (_, res: Response) => {
-  res.send('Twitter server is running...123456')
+  res.send('Twitter server is running')
 })
 app.use('/api/users/', userRouter)
 app.use('/api/medias/', mediaRouter)
