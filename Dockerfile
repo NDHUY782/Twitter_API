@@ -24,4 +24,4 @@ ENV PORT=5000
 EXPOSE 5000
 
 # Chạy ứng dụng
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "dev"]
