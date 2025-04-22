@@ -35,7 +35,7 @@ name: CI/CD Deploy to AWS EC2
 on:
   push:
     branches:
-      - master # Hoặc branch bạn dùng để deploy
+      - master
 
 jobs:
   deploy:
