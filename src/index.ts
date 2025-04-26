@@ -27,6 +27,8 @@ import { Server } from 'socket.io'
 import Conversation from '~/models/schemas/Conversation.Schema'
 import conversationRoute from '~/routes/conversation.routes'
 import { ObjectId } from 'mongodb'
+import Message from '~/models/schemas/Message.Schema'
+import messageRoute from '~/routes/message.routes'
 
 const router = Router()
 
@@ -73,6 +75,7 @@ app.use('/api/bookmark/', bookmarksRoute)
 app.use('/api/like/', likesRoute)
 app.use('/api/search/', searchRouter)
 app.use('/api/conversations/', conversationRoute)
+app.use('/api/messages/', messageRoute)
 
 app.use('static/video', express.static(UPLOAD_VIDEO_DIR))
 app.use(defaultErrorHandler)
@@ -101,13 +104,32 @@ io.on('connection', (socket) => {
   users[user_id] = {
     socket_id: socket.id
   }
-  socket.on('message', async (data) => {
+  socket.on('send message', async (data) => {
     const receiver_socket_id = users[data.to].socket_id
 
-    await databaseService.conversations.insertOne(
-      new Conversation({
-        sender_id: new ObjectId(data.from),
-        receiver_id: new ObjectId(data.to),
+    let conversation = await databaseService.conversations.findOne({
+      $or: [
+        { sender_id: new ObjectId(String(data.to)), receiver_id: new ObjectId(String(user_id)) },
+        { sender_id: new ObjectId(String(user_id)), receiver_id: new ObjectId(String(data.to)) }
+      ]
+    })
+
+    if (!conversation) {
+      const newConversation = new Conversation({
+        sender_id: new ObjectId(String(data.from)),
+        receiver_id: new ObjectId(String(data.to))
+      })
+      const result = await databaseService.conversations.insertOne(newConversation)
+      conversation = {
+        ...newConversation,
+        _id: result.insertedId
+      }
+    }
+    await databaseService.messages.insertOne(
+      new Message({
+        sender_id: user_id,
+        receiver_id: data.to,
+        conversation_id: conversation._id,
         content: data.content
       })
     )
@@ -115,6 +137,28 @@ io.on('connection', (socket) => {
     socket.to(receiver_socket_id).emit('receive message', {
       from: user_id,
       content: data.content
+    })
+    socket.on('seen message', async (message_id) => {
+      const message = await databaseService.messages.findOne({ _id: new ObjectId(String(message_id)) })
+      if (message) {
+        await databaseService.messages.updateOne({ _id: new ObjectId(String(message_id)) }, { $set: { seen: true } })
+        socket.to(receiver_socket_id).emit('seen message', {
+          message_id: message._id,
+          seen: true
+        })
+      }
+    })
+    socket.on('typing', () => {
+      socket.to(receiver_socket_id).emit('typing', {
+        from: user_id,
+        typing: true
+      })
+    })
+    socket.on('stop typing', () => {
+      socket.to(receiver_socket_id).emit('stop typing', {
+        from: user_id,
+        typing: false
+      })
     })
   })
   socket.on('disconnect', () => {

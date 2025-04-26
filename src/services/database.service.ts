@@ -6,6 +6,7 @@ import Conversation from '~/models/schemas/Conversation.Schema'
 import Follower from '~/models/schemas/Followers.Schema'
 import Hashtag from '~/models/schemas/Hashtags.Schema'
 import Like from '~/models/schemas/Like.Schema'
+import Message from '~/models/schemas/Message.Schema'
 import RefreshToken from '~/models/schemas/RefreshToken.Schema'
 import Tweet from '~/models/schemas/Tweet.schema'
 import User from '~/models/schemas/Users.Schema'
@@ -76,6 +77,18 @@ class DatabaseService {
       this.tweets.createIndex({ content: 'text' }, { default_language: 'none' })
     }
   }
+  async indexConversations() {
+    const exist = await this.followers.indexExists(['content_text'])
+    if (!exist) {
+      this.conversations.createIndex({ conversation_id: 1, created_at: -1 })
+    }
+  }
+  // async indexMessages() {
+  //   const exist = await this.followers.indexExists(['content_text'])
+  //   if (!exist) {
+  //     this.messages.createIndex({ conversation_id: 1, created_at: -1 })
+  //   }
+  // }
 
   get users(): Collection<User> {
     return this.db.collection(process.env.DB_USERS_COLLECTION as string)
@@ -100,6 +113,9 @@ class DatabaseService {
   }
   get conversations(): Collection<Conversation> {
     return this.db.collection(process.env.DB_CONVERSATIONS_COLLECTION as string)
+  }
+  get messages(): Collection<Message> {
+    return this.db.collection(process.env.DB_MESSAGES_COLLECTION as string)
   }
 }
 

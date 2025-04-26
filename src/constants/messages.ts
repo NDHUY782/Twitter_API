@@ -55,7 +55,9 @@ export const USERS_MESSAGES = {
   CHANGE_PASSWORD_SUCCESS: 'Change password success',
   UPLOAD_SUCCESS: 'Upload success',
   REFRESH_TOKEN_SUCCESS: 'Refresh token success',
-  ACCESS_TOKEN_IS_REQUIRED: 'Access token is required'
+  ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
+  CONVERSATION_NOT_FOUND: 'Conversation not found',
+  CONVERSATION_ALREADY_EXISTS: 'Conversation already exists'
 } as const
 export const TWEET_MESSAGES = {
   INVALID_TYPE: 'Invalid type',
