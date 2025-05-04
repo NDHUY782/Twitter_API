@@ -21,7 +21,7 @@ export const swaggerDocument: OpenAPIObject = {
       description: 'Local server'
     },
     {
-      url: 'http://3.26.97.252:4000/api',
+      url: 'http://3.26.97.252:5000/api',
       description: 'Production server'
     }
   ],
