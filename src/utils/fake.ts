@@ -21,7 +21,8 @@ export function createRandomUser() {
     email: faker.internet.email(),
     password: PASSWORD,
     confirm_password: PASSWORD,
-    date_of_birth: faker.date.past().toISOString()
+    date_of_birth: faker.date.past().toISOString(),
+    username: faker.internet.userName()
   }
   return user
 }
