@@ -53,11 +53,14 @@ databaseService.connect().then(() => {
 const app = express()
 
 initFolder()
-
+app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.set('trust proxy', 1)
 app.use(express.json({ limit: '4mb' }))
+
+app.use('/api-docs', helmet({ contentSecurityPolicy: false }), swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -74,9 +77,6 @@ app.use(
     }
   })
 )
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
-
-app.use(cors())
 app.use(
   logger('dev', {
     skip: (req: Request) => req.url.indexOf('socket') >= 0
@@ -87,8 +87,6 @@ app.use(
 app.get('/', (_, res: Response) => {
   res.send('Twitter server is running')
 })
-
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.use('/api/users/', userRouter)
 app.use('/api/medias/', mediaRouter)
