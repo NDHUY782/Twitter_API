@@ -13,11 +13,13 @@ import {
   followUserController,
   unFollowUserController,
   changePasswordController,
-  refreshTokenController
+  refreshTokenController,
+  addToCircleController
 } from '~/controllers/user.controller'
 import { filterMiddlewares } from '~/middleware/common.middlewares'
 import {
   accessTokenValidator,
+  addToCircleValidator,
   changePasswordValidator,
   followValidator,
   forgotPasswordTokenValidator,
@@ -189,4 +191,11 @@ userRouter.delete(
   wrapAsync(unFollowUserController)
 )
 
+userRouter.post(
+  '/twitter-circle/add',
+  accessTokenValidator,
+  verifiedUserValidator,
+  addToCircleValidator,
+  wrapAsync(addToCircleController)
+)
 export default userRouter

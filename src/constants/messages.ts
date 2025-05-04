@@ -57,7 +57,9 @@ export const USERS_MESSAGES = {
   REFRESH_TOKEN_SUCCESS: 'Refresh token success',
   ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
   CONVERSATION_NOT_FOUND: 'Conversation not found',
-  CONVERSATION_ALREADY_EXISTS: 'Conversation already exists'
+  CONVERSATION_ALREADY_EXISTS: 'Conversation already exists',
+  ALREADY_IN_CIRCLE: 'Already in circle',
+  ADD_TO_CIRCLE_SUCCESS: 'Add to circle success'
 } as const
 export const TWEET_MESSAGES = {
   INVALID_TYPE: 'Invalid type',

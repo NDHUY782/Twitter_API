@@ -421,6 +421,20 @@ class UserService {
       msg: USERS_MESSAGES.CHANGE_PASSWORD_SUCCESS
     }
   }
+  async addUsersToTwitterCircle(user_id: string, added_user_ids: string[]) {
+    const ownerOid = new ObjectId(user_id)
+    const user_ids = added_user_ids.map((id) => new ObjectId(id))
+
+    const result = await databaseService.users.updateOne(
+      { _id: ownerOid },
+      {
+        $addToSet: { twitter_circle: { $each: user_ids } },
+        $currentDate: { updated_at: true }
+      }
+    )
+
+    return result
+  }
 }
 
 const userService = new UserService()

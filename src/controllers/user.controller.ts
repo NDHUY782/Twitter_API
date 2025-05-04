@@ -4,6 +4,7 @@ import databaseService from '~/services/database.service'
 import userService from '~/services/users.service'
 import { NextFunction, ParamsDictionary } from 'express-serve-static-core'
 import {
+  AddToCircleReqBody,
   ChangePasswordReqBody,
   FollowReqBody,
   ForgotPasswordReqBody,
@@ -217,5 +218,16 @@ export const changePasswordController = async (
   const { user_id } = req.decoded_authorization as TokenPayload
   const { password } = req.body
   const result = await userService.changePassword(user_id, password)
+  return res.json(result)
+}
+export const addToCircleController = async (
+  req: Request<any, any, AddToCircleReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_ids } = req.body
+  const { user_id } = req.decoded_authorization as TokenPayload
+
+  const result = await userService.addUsersToTwitterCircle(user_id, user_ids)
   return res.json(result)
 }

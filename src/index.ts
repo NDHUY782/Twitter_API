@@ -30,6 +30,9 @@ import { ObjectId } from 'mongodb'
 import Message from '~/models/schemas/Message.Schema'
 import messageRoute from '~/routes/message.routes'
 
+import swaggerUi from 'swagger-ui-express'
+import { swaggerDocument } from './swagger/swagger'
+
 const router = Router()
 
 const PORT = process.env.PORT || 4000
@@ -67,12 +70,15 @@ app.use(
 app.get('/', (_, res: Response) => {
   res.send('Twitter server is running')
 })
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+
 app.use('/api/users/', userRouter)
 app.use('/api/medias/', mediaRouter)
 app.use('/api/static/', staticRoute)
-app.use('/api/tweet/', tweetsRouter)
-app.use('/api/bookmark/', bookmarksRoute)
-app.use('/api/like/', likesRoute)
+app.use('/api/tweets/', tweetsRouter)
+app.use('/api/bookmarks/', bookmarksRoute)
+app.use('/api/likes/', likesRoute)
 app.use('/api/search/', searchRouter)
 app.use('/api/conversations/', conversationRoute)
 app.use('/api/messages/', messageRoute)

@@ -574,3 +574,31 @@ export const isUserLoggedInValidator = (middleware: (req: Request, res: Response
     next()
   }
 }
+export const addToCircleValidator = validate(
+  checkSchema(
+    {
+      user_id: {
+        in: ['body'],
+        custom: {
+          options: async (value) => {
+            if (!ObjectId.isValid(value)) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.INVALID_USER_ID,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+            const user = await databaseService.users.findOne({ _id: new ObjectId(String(value)) })
+            if (!user) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.USER_NOT_FOUND,
+                status: HTTP_STATUS.NOT_FOUND
+              })
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)

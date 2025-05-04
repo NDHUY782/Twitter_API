@@ -36,6 +36,22 @@ tweetsRouter.post(
 )
 
 /**
+ * Description: get new feeds
+ * Path: /
+ * Method: GET
+ * Header: {Authorization: Bearer <access_token>}
+ * Query: {limit: number,page: number}
+ */
+
+tweetsRouter.get(
+  '/',
+  paginationValidator,
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrapRequestHandler(getNewFeedController)
+)
+
+/**
  * Description: get tweet detail
  * Path: /:tweet_id
  * Method: GET
@@ -70,19 +86,4 @@ tweetsRouter.get(
   wrapAsync(getTweetChildrenController)
 )
 
-/**
- * Description: get new feeds
- * Path: /
- * Method: GET
- * Header: {Authorization: Bearer <access_token>}
- * Query: {limit: number,page: number}
- */
-
-tweetsRouter.get(
-  '/',
-  paginationValidator,
-  accessTokenValidator,
-  verifiedUserValidator,
-  wrapRequestHandler(getNewFeedController)
-)
 export default tweetsRouter

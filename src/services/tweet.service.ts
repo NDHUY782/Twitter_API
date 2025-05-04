@@ -245,6 +245,7 @@ class TweetService {
 
   async getNewFeeds({ user_id, limit, page }: { user_id: string; limit: number; page: number }) {
     const user_id_object = new ObjectId(user_id)
+
     const followed_user_ids = await databaseService.followers
       .find(
         {

@@ -18,6 +18,7 @@ export interface RegisterReqBody {
   password: string
   confirm_password: string
   date_of_birth: string
+  username: string
 }
 export interface LoginReqBody {
   email: string
@@ -59,4 +60,7 @@ export interface ChangePasswordReqBody {
   old_password: string
   password: string
   confirm_password: string
+}
+export interface AddToCircleReqBody {
+  user_ids: string[]
 }

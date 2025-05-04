@@ -12,6 +12,27 @@ import databaseService from '~/services/database.service'
 
 config()
 class ConversationService {
+  async getConversations(user_id: string, limit: number, page: number) {
+    const filter = {
+      $or: [{ sender_id: new ObjectId(user_id) }, { receiver_id: new ObjectId(user_id) }]
+    }
+    const total = await databaseService.conversations.countDocuments(filter)
+
+    const data = await databaseService.conversations
+      .find(filter)
+      .sort({ updatedAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .toArray()
+
+    return {
+      total,
+      page,
+      limit,
+      data
+    }
+  }
+
   async getConversation(user_id: string, conversation_id: string, limit: number, page: number) {
     const conversation = await databaseService.conversations
       .find({

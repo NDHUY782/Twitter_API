@@ -32,11 +32,7 @@ export const getListMessagesByConversationController = async (
 }
 
 export const markAsSeen = async (req: Request, res: Response) => {
-  try {
-    const { message_id } = req.body
-    const result = await messageService.markAsSeen(message_id)
-    return res.json(result)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to mark message as seen' })
-  }
+  const { message_id } = req.body
+  const result = await messageService.markAsSeen(message_id)
+  return res.json(result)
 }

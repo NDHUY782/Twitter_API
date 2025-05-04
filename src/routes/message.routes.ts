@@ -1,5 +1,9 @@
 import { Router } from 'express'
-import { createMessageController, getListMessagesByConversationController } from '~/controllers/message.controller'
+import {
+  createMessageController,
+  getListMessagesByConversationController,
+  markAsSeen
+} from '~/controllers/message.controller'
 import { paginationValidator } from '~/middleware/tweet.middlewares'
 import { accessTokenValidator, verifiedUserValidator } from '~/middleware/users.middlewares'
 import { wrapAsync, wrapRequestHandler, wrapRequest } from '~/utils/handlers'
@@ -33,5 +37,13 @@ messageRoute.get(
   paginationValidator,
   wrapAsync(getListMessagesByConversationController)
 )
+/**
+ * Description: Get list message in conversation
+ * Path: /get-messages/:conversation_id
+ * Method: GET
+ * Body: {limit: string, page: string}
+ * Header: {Authorization: Bearer <access_token>}
+ */
+messageRoute.get('/mark-as-seen/:conversation_id', accessTokenValidator, wrapAsync(markAsSeen))
 
 export default messageRoute
