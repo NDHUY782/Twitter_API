@@ -1,35 +1,3 @@
-# name: Deploy to EC2 via SSH
-
-# on:
-#   push:
-#     branches:
-#       - master
-
-# jobs:
-#   deploy:
-#     name: Build & Deploy
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Pull source code
-#         uses: actions/checkout@v3
-
-#       - name: Set up SSH connection
-#         uses: webfactory/ssh-agent@v0.5.4
-#         with:
-#           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-#       - name: Deploy to EC2
-#         env:
-#           HOST: ${{ secrets.EC2_HOST }}
-#           USER: ${{ secrets.EC2_USER }}
-#         run: |
-#           ssh -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
-#             cd ~/Twitter_API
-#             git pull origin main
-#             sudo docker-compose down
-#             sudo docker-compose up --build -d
-#           EOF
 name: CI/CD Deploy to AWS EC2
 
 on:
@@ -46,13 +14,10 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Set up Node.js (nếu cần build trước, không bắt buộc)
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
-      - name: Build Docker image
-        run: docker build -t  twitter-api .
 
       - name: SCP files to AWS EC2
         uses: appleboy/scp-action@master
@@ -71,5 +36,17 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/Twitter_API
-            docker compose down || docker-compose down
-            docker compose up -d --build || docker-compose up -d --build
+
+            # 1) Dừng & xóa sạch container + volumes (Compose V2 hoặc fallback V1)
+            if command -v docker compose > /dev/null; then
+              docker compose down --remove-orphans --volumes
+            else
+              docker-compose down --remove-orphans --volumes
+            fi
+
+            # 2) Build & recreate container hoàn toàn
+            if command -v docker compose > /dev/null; then
+              docker compose up -d --build --force-recreate --remove-orphans
+            else
+              docker-compose up -d --build --force-recreate --remove-orphans
+            fi

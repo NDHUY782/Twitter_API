@@ -1,9 +1,6 @@
-version: '3.8'
-
 services:
   twitter-api:
     build: .
-    container_name: twitter-api
     image: twitter-api:latest
     ports:
       - '5000:5000'
