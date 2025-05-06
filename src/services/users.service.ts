@@ -94,44 +94,6 @@ class UserService {
     })
   }
 
-  // async register(payload: RegisterReqBody) {
-  //   const { email, password } = payload
-  //   /** cách 1: dùng chung check email exist cùng chung api register còn cách 2 là dùng custom trong middleware schema và tạo api check email exist */
-
-  //   // const existEmail = await databaseService.users.findOne({
-  //   //   email: email
-  //   // })
-  //   // if (existEmail) {
-  //   //   return false
-  //   // }
-
-  //   /**---------------------------------------------------------------------------- */
-
-  //   const result = await databaseService.users.insertOne(
-  //     new User({
-  //       ...payload,
-  //       data_of_birth: new Date(payload.date_of_birth),
-  //       password: hashPassword(payload.password)
-  //     })
-  //   )
-
-  //   const user_id = result.insertedId.toString()
-  //   const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
-  //   await databaseService.refreshTokens.insertOne(
-  //     new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
-  //   )
-  //   const email_verify_token = await this.signEmailVerifyToken({
-  //     user_id: user_id.toString(),
-  //     verify: UserVerifyStatus.Unverified
-  //   })
-  //   console.log('email verify token là: ', email_verify_token)
-  //   // Cập nhật email_verify_token cho người dùng
-  //   await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, { $set: { email_verify_token } })
-  //   return {
-  //     access_token,
-  //     refresh_token
-  //   }
-  // }
   async register(payload: RegisterReqBody) {
     const user_id = new ObjectId()
     const email_verify_token = await this.signEmailVerifyToken({
@@ -145,7 +107,8 @@ class UserService {
         username: payload.username,
         email_verify_token,
         date_of_birth: new Date(payload.date_of_birth),
-        password: hashPassword(payload.password)
+        password: hashPassword(payload.password),
+        verify: UserVerifyStatus.Verified
       })
     )
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
