@@ -36,7 +36,7 @@ tweetsRouter.post(
 )
 
 /**
- * Description: get new feeds
+ * Description: get new feeds, only display tweets of people you follow and your tweets
  * Path: /
  * Method: GET
  * Header: {Authorization: Bearer <access_token>}

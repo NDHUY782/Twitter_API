@@ -91,9 +91,11 @@ export const getNewFeedController = async (
   res: Response,
   next: NextFunction
 ) => {
-  const limit = Number(req.query.limit)
-  const page = Number(req.query.page)
-  const user_id = req.decoded_authorization?.user_id as string
+  // const limit = Number(req.query.limit)
+  // const page = Number(req.query.page)
+  const limit = parseInt(req.query.limit ?? '', 10) || 10
+  const page = parseInt(req.query.page ?? '', 10) || 1
+  const { user_id } = req.decoded_authorization as TokenPayload
   const result = await tweetService.getNewFeeds({
     user_id,
     limit,

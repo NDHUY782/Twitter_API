@@ -13,16 +13,16 @@ const PASSWORD = 'Huy1234@'
 const MYID = new ObjectId('67c54910b54c61164dc42cf2')
 
 //sỐ LƯỢNG USER FAKE ĐƯỢC TẠO, mỗi user sẽ mặc định tweet 2 cái
-const USER_COUNT = 20
+const USER_COUNT = 10
 
 export function createRandomUser() {
   const user: RegisterReqBody = {
-    name: faker.internet.username(),
+    name: faker.person.fullName(),
     email: faker.internet.email(),
     password: PASSWORD,
     confirm_password: PASSWORD,
     date_of_birth: faker.date.past().toISOString(),
-    username: faker.internet.userName()
+    username: faker.internet.username()
   }
   return user
 }
@@ -47,12 +47,12 @@ export const users: RegisterReqBody[] = faker.helpers.multiple(createRandomUser,
 })
 
 const insertMultipleUsers = async (users: RegisterReqBody[]) => {
-  console.log('Creating users.....')
   const result = await Promise.all(
     users.map(async (user) => {
       const user_id = new ObjectId()
       await databaseService.users.insertOne(
         new User({
+          _id: user_id,
           ...user,
           username: `user${user_id.toString()}`,
           password: hashPassword(user.password),

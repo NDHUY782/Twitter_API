@@ -9,6 +9,7 @@ import timezone from 'dayjs/plugin/timezone'
 import moment from 'moment-timezone'
 import bodyParser from 'body-parser'
 import databaseService from './services/database.service'
+// import '~/utils/fake'
 
 import { Router } from 'express'
 import userRouter from './routes/users.routes'
@@ -49,6 +50,7 @@ databaseService.connect().then(() => {
   databaseService.indexRefreshTokens()
   databaseService.indexFollowers()
   databaseService.indexTweets()
+  databaseService.indexConversations()
 })
 const app = express()
 
@@ -59,7 +61,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('trust proxy', 1)
 app.use(express.json({ limit: '4mb' }))
 
-app.use('/api-docs', helmet({ contentSecurityPolicy: false }), swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+app.use('/api-docs/', helmet({ contentSecurityPolicy: false }), swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.use(
   helmet({
