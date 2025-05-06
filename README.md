@@ -48,7 +48,7 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 - **API Documentation**
 
   - Swagger UI available at `/api-docs`
-  - Fully inline schemas—no external `$ref`
+  - Fully inline schemas—no external $ref
 
 - **DevOps & Deployment**
   - Docker & Docker Compose
@@ -61,7 +61,7 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 
 - **Runtime:** Node.js 20
 - **Framework:** Express
-- **Database:** MongoDB (via native driver)
+- **Database:** MongoDB (native driver)
 - **Auth:** JSON Web Tokens
 - **Docs:** OpenAPI 3.0 (swagger-ui-express)
 - **Realtime:** Socket.io
@@ -73,7 +73,111 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 ## 📦 Installation & Setup
 
 1. **Clone the repo**
+
    ```bash
-   https://github.com/NDHUY782/Twitter_API.git
-   cd Twitter_API
+   git clone https://github.com/your-org/twitter-clone-api.git
+   cd twitter-clone-api
    ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm ci
+   ```
+
+3. **Configure environment**  
+   Copy `.env.example` → `.env` and fill in:
+
+   ```
+   PORT=4000
+   MONGODB_URI=mongodb://localhost:27017/twitter
+   JWT_SECRET=…
+   JWT_REFRESH_SECRET=…
+   JWT_EMAIL_VERIFY_SECRET=…
+   JWT_FORGOT_PASSWORD_SECRET=…
+   HOST=https://your-aws-domain.com
+   ```
+
+4. **Run locally**
+   ```bash
+   npm run build
+   npm start
+   ```
+   - API at `http://localhost:4000/api`
+   - Swagger UI at `http://localhost:4000/api-docs`
+
+---
+
+## 🐳 Docker
+
+Build and run with Docker Compose:
+
+```bash
+docker-compose up --build -d
+```
+
+- Service `twitter-api` listens on port `4000`
+- MongoDB on port `27017`
+
+---
+
+## ☁️ Deployment on AWS
+
+1. Push Docker image to ECR
+2. Create ECS task & service pointing to that image
+3. Attach Application Load Balancer on port 80 → 4000
+4. Set environment variables in ECS task definition
+5. (Optional) API Gateway + Lambda for HTTP proxy
+
+Swagger UI on production:
+
+```
+https://your-aws-domain.com/api-docs
+```
+
+---
+
+## 🔌 WebSocket Events
+
+| Event             | Payload                   | Description                 |
+| ----------------- | ------------------------- | --------------------------- |
+| `send message`    | `{ from, to, content }`   | Client → server to send msg |
+| `receive message` | `{ from, content }`       | Server → client on new msg  |
+| `seen message`    | `{ message_id }`          | Mark message as seen        |
+| `typing`          | `{ from, typing: true }`  | Client typing indicator     |
+| `stop typing`     | `{ from, typing: false }` | Client stopped typing       |
+
+---
+
+## 📁 Project Structure
+
+```
+.
+├── src/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   └── swagger/
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork & clone
+2. Create feature branch
+3. Write code & tests
+4. Open a Pull Request
+
+---
+
+## 📄 License
+
+MIT © Your Name / Your Org
