@@ -24,7 +24,6 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 - **Search**
 
   - Full-text search over tweet content
-  - Filter by media type (image, video, HLS)
   - Optionally restrict to people you follow
 
 - **Bookmarks & Likes**
@@ -52,7 +51,7 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 
 - **DevOps & Deployment**
   - Docker & Docker Compose
-  - Ready for AWS (ECS / EC2 / API Gateway)
+  - Ready for AWS (EC2 )
   - Environment-driven configuration
 
 ---
@@ -61,6 +60,7 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 
 - **Runtime:** Node.js 20
 - **Framework:** Express
+- **Language:** Typescipt
 - **Database:** MongoDB (native driver)
 - **Auth:** JSON Web Tokens
 - **Docs:** OpenAPI 3.0 (swagger-ui-express)
@@ -75,14 +75,14 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 1. **Clone the repo**
 
    ```bash
-   git clone https://github.com/your-org/twitter-clone-api.git
-   cd twitter-clone-api
+   git clone https://github.com/NDHUY782/Twitter_API.git
+   cd Twitter_API
    ```
 
 2. **Install dependencies**
 
    ```bash
-   npm ci
+   npm install
    ```
 
 3. **Configure environment**  
@@ -100,7 +100,7 @@ A backend API that mimics core Twitter functionality: user management, tweeting,
 
 4. **Run locally**
    ```bash
-   npm run build
+   npm run dev
    npm start
    ```
    - API at `http://localhost:4000/api`
@@ -116,8 +116,7 @@ Build and run with Docker Compose:
 docker-compose up --build -d
 ```
 
-- Service `twitter-api` listens on port `4000`
-- MongoDB on port `27017`
+- Service `twitter-api` listens on port `5000`
 
 ---
 
@@ -125,14 +124,14 @@ docker-compose up --build -d
 
 1. Push Docker image to ECR
 2. Create ECS task & service pointing to that image
-3. Attach Application Load Balancer on port 80 → 4000
+3. Attach Application Load Balancer on port 80 → 5000
 4. Set environment variables in ECS task definition
 5. (Optional) API Gateway + Lambda for HTTP proxy
 
 Swagger UI on production:
 
 ```
-https://your-aws-domain.com/api-docs
+http://3.26.97.252:5000/api-docs
 ```
 
 ---
@@ -153,6 +152,7 @@ https://your-aws-domain.com/api-docs
 
 ```
 .
+├── .github
 ├── src/
 │   ├── controllers/
 │   ├── middleware/
@@ -163,7 +163,7 @@ https://your-aws-domain.com/api-docs
 │   └── swagger/
 ├── Dockerfile
 ├── docker-compose.yml
-├── .env.example
+├── .env
 └── README.md
 ```
 
@@ -177,7 +177,3 @@ https://your-aws-domain.com/api-docs
 4. Open a Pull Request
 
 ---
-
-## 📄 License
-
-MIT © Your Name / Your Org
