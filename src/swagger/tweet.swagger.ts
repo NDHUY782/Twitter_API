@@ -84,7 +84,8 @@ export const tweetPaths: PathsObject = {
   '/tweets': {
     get: {
       tags: ['Tweet'],
-      summary: 'Get new feed',
+      summary:
+        "Get new feed, display tweets of people you follow and your tweets and if you have already seen all tweets, it will display tweets of people you don't follow",
       security: [{ bearerAuth: [] }],
       parameters: [
         { name: 'limit', in: 'query', required: true, schema: { type: 'integer', minimum: 1 } },
